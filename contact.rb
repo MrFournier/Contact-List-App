@@ -20,6 +20,8 @@ class Contact
     # @return [Array<Contact>] Array of Contact objects
     def all
       # TODO: Return an Array of Contact instances made from the data in 'contacts.csv'.
+      CSV.read('contacts.csv')
+
     end
 
     # Creates a new contact, adding it to the csv file, returning the new contact.
@@ -27,6 +29,13 @@ class Contact
     # @param email [String] the contact's email
     def create(name, email)
       # TODO: Instantiate a Contact, add its data to the 'contacts.csv' file, and return it.
+      contact = []
+      contact << name
+      contact << email
+      CSV.open('contacts.csv', 'a') do |csv_object|
+        csv_object << contact
+      end
+
     end
     
     # Find the Contact in the 'contacts.csv' file with the matching id.
