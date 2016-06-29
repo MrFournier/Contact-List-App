@@ -1,4 +1,5 @@
 require 'csv'
+require 'pry'
 
 # Represents a person in an address book.
 # The ContactList class will work with Contact objects instead of interacting with the CSV file directly
@@ -43,6 +44,9 @@ class Contact
     # @return [Contact, nil] the contact with the specified id. If no contact has the id, returns nil.
     def find(id)
       # TODO: Find the Contact in the 'contacts.csv' file with the matching id.
+      # Count the lines in the CSV file and use the line num as the ID
+      contacts = CSV.read('contacts.csv')
+      contacts[id.to_i - 1]
     end
     
     # Search for contacts by either name or email.
@@ -50,7 +54,21 @@ class Contact
     # @return [Array<Contact>] Array of Contact objects.
     def search(term)
       # TODO: Select the Contact instances from the 'contacts.csv' file whose name or email attributes contain the search term.
+      # Old search alogrithm     
+      result = []
+      count = 0
+      contacts = CSV.read('contacts.csv')
+      # binding.pry
+      contacts.each do |contact|
+        count += 1
+        if contact[0].include?(term) || contact[1].include?(term)
+          contact.unshift(count)
+          result << contact
+        end
+      end
+      return result
     end
+    
 
   end
 

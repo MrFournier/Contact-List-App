@@ -17,7 +17,7 @@ class ContactList
     # Should return a list of all contacts
     count = 1
     Contact.all.each do |ele|  
-      puts "#{count}: #{ele[0]} #{ele[1]}"
+      puts "#{count}: #{ele[0]} (#{ele[1]})"
       count += 1
     end
 
@@ -28,6 +28,21 @@ class ContactList
     puts "Please enter the email of your new contact: "
     email = STDIN.gets.strip
     Contact.create(name, email)
+    puts "Contact created successfully"
+
+  when 'show'
+    # Should take two params in ARGV show and an ID and
+    # return a contact
+    contact = Contact.find(ARGV[1])
+    puts "#{ARGV[1]}: #{contact[0]}, #{contact[1]}"
+
+  when 'search'
+    found = Contact.search(ARGV[1])
+    # puts found
+    count = 1
+    found.each do |ele|
+      puts "#{ele[0]}: #{ele[1]} (#{ele[2]})"
+    end
 
   end
 
