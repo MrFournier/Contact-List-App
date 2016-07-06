@@ -14,11 +14,9 @@ class ContactList
       "\tsearch\t- Search contacts"
 
   when 'list'
-    # Should return a list of all contacts
-    count = 1
-    Contact.all.each do |ele|  
-      puts "#{count}: #{ele[0]} (#{ele[1]})"
-      count += 1
+    result = Contact.all
+    result.map do |contact|
+      puts "#{contact["id"]}: #{contact["name"]} (#{contact["email"]})"
     end
 
   when 'new'
@@ -33,19 +31,29 @@ class ContactList
   when 'show'
     # Should take two params in ARGV show and an ID and
     # return a contact
-    contact = Contact.find(ARGV[1])
-    puts "#{ARGV[1]}: #{contact[0]}, #{contact[1]}"
+    result = Contact.find(ARGV[1])
+    result.map do |contact|
+      puts "#{contact["id"]}: #{contact["name"]} (#{contact["email"]})"
+    end
 
   when 'search'
     found = Contact.search(ARGV[1])
-    # puts found
-    count = 1
-    found.each do |ele|
-      puts "#{ele[0]}: #{ele[1]} (#{ele[2]})"
+    found.map do |contact|
+      puts "#{contact["id"]}: #{contact["name"]} (#{contact["email"]})"
     end
 
-  end
+  when 'update'
+    puts "Please enter the new full name of your contact: "
+    name = STDIN.gets.strip
+    puts "Please enter the new email of your contact: "
+    email = STDIN.gets.strip
+    Contact.update(ARGV[1], name, email)
+    puts "Update successful"
+
+  when 'destroy'
+    Contact.destroy(ARGV[1])
 
   end
+end
     
   # TODO: Implement user interaction. This should be the only file where you use `puts` and `gets`

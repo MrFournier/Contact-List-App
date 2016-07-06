@@ -1,75 +1,69 @@
-require 'csv'
+require 'pg'
 require 'pry'
 
-# Represents a person in an address book.
-# The ContactList class will work with Contact objects instead of interacting with the CSV file directly
 class Contact
 
+  @@connection = nil
+
+  attr_reader :id
   attr_accessor :name, :email
-  
-  # Creates a new contact object
-  # @param name [String] The contact's name
-  # @param email [String] The contact's email address
-  def initialize(name, email)
-    # TODO: Assign parameter values to instance variables.
+
+  def initialize(name, email, id = nil)
+    @name = name
+    @email = email
+    @id = id
   end
 
-  # Provides functionality for managing contacts in the csv file.
+  def save
+    Contact.connection.exec_params("INSERT INTO contacts (name, email) VALUES ($1, $2);", [@name, @email])
+  end
+
   class << self
 
-    # Opens 'contacts.csv' and creates a Contact object for each line in the file (aka each contact).
-    # @return [Array<Contact>] Array of Contact objects
+    def connection
+      # @@conn = @@conn || PG.connect({dbname 'contact_list_db}')
+      # might not need ':user...'
+      # ::Connection.open(:dbname => 'contact_list_db', :user => 'development', :password => 'development')
+      @@connection = @@connection || PG.connect({dbname: 'contact_list_db'})
+    end
+
     def all
-      # TODO: Return an Array of Contact instances made from the data in 'contacts.csv'.
-      CSV.read('contacts.csv')
-
+      self.connection.exec_params("SELECT * FROM contacts;")
     end
 
-    # Creates a new contact, adding it to the csv file, returning the new contact.
-    # @param name [String] the new contact's name
-    # @param email [String] the contact's email
     def create(name, email)
-      # TODO: Instantiate a Contact, add its data to the 'contacts.csv' file, and return it.
-      contact = []
-      contact << name
-      contact << email
-      CSV.open('contacts.csv', 'a') do |csv_object|
-        csv_object << contact
-      end
-
+      Contact.new(name, email).save
     end
-    
-    # Find the Contact in the 'contacts.csv' file with the matching id.
-    # @param id [Integer] the contact id
-    # @return [Contact, nil] the contact with the specified id. If no contact has the id, returns nil.
+
     def find(id)
-      # TODO: Find the Contact in the 'contacts.csv' file with the matching id.
-      # Count the lines in the CSV file and use the line num as the ID
-      contacts = CSV.read('contacts.csv')
-      contacts[id.to_i - 1]
+      self.connection.exec_params("SELECT * FROM contacts WHERE id = $1;", [id])
+
     end
-    
-    # Search for contacts by either name or email.
-    # @param term [String] the name fragment or email fragment to search for
-    # @return [Array<Contact>] Array of Contact objects.
+
     def search(term)
-      # TODO: Select the Contact instances from the 'contacts.csv' file whose name or email attributes contain the search term.
-      # Old search alogrithm     
-      result = []
-      count = 0
-      contacts = CSV.read('contacts.csv')
-      # binding.pry
-      contacts.each do |contact|
-        count += 1
-        if contact[0].include?(term) || contact[1].include?(term)
-          contact.unshift(count)
-          result << contact
-        end
-      end
-      return result
+      result = connection.exec_params("SELECT * FROM contacts WHERE name LIKE '%#{term}%';")
     end
-    
 
+    def update(id, new_name, new_email)
+      results = find(id)
+      if results.num_tuples == 0
+        self.create(new_name, new_email)
+        self.save
+      else
+        @name = new_name
+        @email = new_email
+        Contact.connection.exec_params("UPDATE contacts SET name = $1, email = $2 WHERE id = $3;", [@name, @email, id])
+      end
+    end
+
+    def destroy(id)
+      results = find(id)
+      if results.num_tuples == 0
+        return puts "No contact with that id"
+      else
+        self.connection.exec_params("DELETE FROM contacts WHERE id = $1", [id])
+        puts 'Contact deleted'
+      end
+    end
   end
-
 end
